@@ -10,7 +10,7 @@ import {
 } from "./zettel_mint";
 import {Keypair, PublicKey} from "@solana/web3.js";
 import {connection, randomPayer, zettelWallet} from "./config";
-import {expect} from "chai";
+import {expect, should} from "chai";
 
 describe("zetteltute-anchor", () => {
     // Configure the client to use the local cluster.
@@ -87,6 +87,51 @@ describe("zetteltute-anchor", () => {
         expect(user.zettelUserId).to.equal("-12345");
     });
 
+    it("Add receipt 🧾 to an account", async () => {
+        await program.methods
+            .addReceipt({
+                start: "start",
+                stop: "stop",
+                transaction: 1,
+                signatureCounter: 1,
+                signature: "",
+                serial: ""
+            })
+            .accounts({
+                zettelAccount: zettelAccountKeypair.publicKey,
+                accountOwner: zettelAccountKeypair.publicKey,
+            })
+            .signers([zettelAccountKeypair])
+            .rpc()
+
+        let tute = await program.account.zettelTute.fetch(zettelAccountKeypair.publicKey);
+        expect(tute.receipts.length).to.equal(1);
+
+        expect(tute.receipts[0].start).to.equal("start");
+    });
+
+    it("Using other account to add receipt ... ", async () => {
+        const otherAccount = anchor.web3.Keypair.generate();
+
+        /*expect.fail(await program.methods
+            .addReceipt({
+                start: "start",
+                stop: "stop",
+                transaction: 1,
+                signatureCounter: 1,
+                signature: "",
+                serial: ""
+            })
+            .accounts({
+                zettelAccount: accountKeypair.publicKey,
+                accountOwner: otherAccount.publicKey,
+            })
+            .signers([otherAccount])
+            .rpc()
+        );//.to.throw(Error);
+        */
+    });
+
     it("Minting the data user bag ... 📬", async () => {
 
         const dataUserBalance = await getBalance(dataUserTokenBag.address);
@@ -121,11 +166,23 @@ describe("zetteltute-anchor", () => {
                 accountZettelBag: zettelAccountTokenBag.address,
                 dataUserZettelBag:dataUserTokenBag.address,
                 dataUserZettelBagAuthority: dataUserKeypair.publicKey,
+
+                zettelAccount: zettelAccountKeypair.publicKey,
+                accountOwner: zettelAccountKeypair.publicKey,
+
+                dataUserAccount: dataUserKeypair.publicKey,
             })
-            .signers([dataUserKeypair])
+            .signers([dataUserKeypair, zettelAccountKeypair])
             .rpc();
 
         expect(await getBalance(dataUserTokenBag.address)).to.equal(dataUserBalance - 5_0);
         expect(await getBalance(zettelAccountTokenBag.address)).to.equal(5_0);
+
+        let dataUser = await program.account
+            .dataUser.fetch(dataUserKeypair.publicKey);
+
+        expect(dataUser.dataUrls.length).to.equal(1);
+        expect(dataUser.dataUrls[0]).to.equal("https://");
+
     });
 });

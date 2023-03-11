@@ -3,6 +3,17 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
+#[error_code]
+pub enum ZettelError {
+    AccountAlreadyExists,
+    NotAccountOwner,
+    NoTseStart,
+    NoTseStop,
+    NoTseTransaction,
+    NoTseSignatureCounter,
+    NoTseSerial,
+}
+
 #[program]
 pub mod zetteltute_anchor {
 
@@ -19,6 +30,23 @@ pub mod zetteltute_anchor {
     pub fn setup_data_user(ctx: Context<CreateDataUserAccount>,
                            zettel_user_id: String) -> Result<()> {
         ctx.accounts.data_user_account.setup(zettel_user_id)
+    }
+
+    pub fn add_receipt(ctx: Context<AddReceipt>,
+                       receipt: Receipt) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.zettel_account.key(),
+            ctx.accounts.account_owner.key(),
+            ZettelError::NotAccountOwner
+        );
+        let zettel_account = &mut ctx.accounts.zettel_account;
+
+        if receipt.start.is_empty() { return err!(ZettelError::NoTseStart); }
+        if receipt.stop.is_empty() { return err!(ZettelError::NoTseStop); }
+        if receipt.transaction <= 0 { return err!(ZettelError::NoTseTransaction); }
+        if receipt.signature_counter <= 0 { return err!(ZettelError::NoTseSignatureCounter); }
+
+        zettel_account.add_receipt(receipt)
     }
 
     pub fn mint_to_data_user(ctx: Context<MintToDataUserAccount>,
@@ -47,6 +75,16 @@ pub mod zetteltute_anchor {
 
     pub fn transfer_token_for_data(ctx: Context<TransferTokenForData>,
                                    amount: u64) -> Result<()> {
+
+        // want to make sure data holder agrees to the transfer of data
+        require_keys_eq!(
+            ctx.accounts.zettel_account.key(),
+            ctx.accounts.account_owner.key(),
+            ZettelError::NotAccountOwner
+        );
+
+        let dataUrl = ctx.accounts.zettel_account.get_data_url();
+        ctx.accounts.data_user_account.add_data_url(dataUrl);
 
         let cpi_ctx = CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -122,6 +160,14 @@ pub struct MintToDataUserAccount<'info> {
 }
 
 #[derive(Accounts)]
+pub struct AddReceipt<'info> {
+    #[account(mut)]
+    pub zettel_account: Account<'info, ZettelTute>,
+    #[account(mut)]
+    pub account_owner: Signer<'info>,
+}
+
+#[derive(Accounts)]
 pub struct TransferTokenForData<'info> {
     #[account(mut)]
     pub account_zettel_bag: Account<'info, TokenAccount>,
@@ -129,6 +175,14 @@ pub struct TransferTokenForData<'info> {
     #[account(mut)]
     pub data_user_zettel_bag: Account<'info, TokenAccount>,
     pub data_user_zettel_bag_authority: Signer<'info>,
+
+    #[account(mut)]
+    pub data_user_account: Account<'info, DataUser>,
+    #[account(mut)]
+    pub account_owner: Signer<'info>,
+
+    #[account(mut)]
+    pub zettel_account: Account<'info, ZettelTute>,
 
     pub token_program: Program<'info, Token>,
 }
@@ -173,6 +227,16 @@ pub struct Campaign {
     pub eligible_receipts: Vec<Receipt>,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct DataUrl {
+    url: String,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct AccountId {
+    id: String,
+}
+
 /*########
 IMPLEMENTATIONS
 #######*/
@@ -193,6 +257,8 @@ impl ZettelTute {
         self.receipts.push(receipt);
         Ok(())
     }
+
+    pub fn get_data_url(&self) -> String { self.zettel_tute_data_url.to_string() }
 }
 
 impl DataUser {
