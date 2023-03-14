@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("6t3Ca79eN9fDh7gmc3cVgMum7qAk3JRZgokNnL3TioKD");
 
 #[error_code]
 pub enum ZettelError {
@@ -242,7 +242,7 @@ IMPLEMENTATIONS
 #######*/
 
 impl ZettelTute {
-    pub const MAXIMUM_SIZE: usize = (32 * 10) + 1 + (9 * (1 + 1)) + (32 + 1);
+    pub const MAXIMUM_SIZE: usize = (32 * 50) + 1 + (9 * (1 + 1)) + (32 + 1);
 
     pub fn setup(&mut self,
                  zettel_tute_id: String,
@@ -262,7 +262,7 @@ impl ZettelTute {
 }
 
 impl DataUser {
-    pub const MAXIMUM_SIZE: usize = (32 * 10) + 1 + (9 * (1 + 1)) + (32 + 1);
+    pub const MAXIMUM_SIZE: usize = (32 * 50) + 1 + (9 * (1 + 1)) + (32 + 1);
 
     pub fn setup(&mut self,
                  zettel_user_id: String) -> Result<()> {

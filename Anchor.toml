@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-zetteltute_anchor = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+zetteltute_anchor = "6t3Ca79eN9fDh7gmc3cVgMum7qAk3JRZgokNnL3TioKD"
 
 [registry]
 url = "https://api.apr.dev"
