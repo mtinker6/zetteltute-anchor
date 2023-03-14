@@ -1,4 +1,4 @@
-# Zettetute Anchor Project #
+# Zetteltute Anchor Project #
 
 ![Zetteltute by Solana copy](https://user-images.githubusercontent.com/8571358/224981945-ddb9a1e4-f188-4846-9409-f0d3679df85a.png)
 
