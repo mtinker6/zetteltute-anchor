@@ -49,13 +49,13 @@ Background Information:
 * `mint_to_data_user`
 * `transfer_token_for_data`
 
-### App Inegration with REST Enpoints ###
+### App Integration with REST Endpoints ###
 
 REST endpoints and triggers for Firebase are in `scripts/solanaFunctions.js`
 
 ***Some/most string information was reducted and obfuscated with `*** obfuscated ***` to not expose possible sensitive information of the underlying system.***
 
-*The script is messy and was hacked togehter with code duplication and so on. But, IT WORKS!! ;)*
+*The script is messy and was hacked together with code duplication and so on. But, IT WORKS!! ;)*
 
 ### Resources and Thank You Goes To ###
 
